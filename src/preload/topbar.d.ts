@@ -10,7 +10,7 @@ interface TabInfo {
 interface TopBarAPI {
   // Tab management
   createTab: (
-    url?: string
+    url?: string,
   ) => Promise<{ id: string; title: string; url: string } | null>;
   closeTab: (tabId: string) => Promise<boolean>;
   switchTab: (tabId: string) => Promise<boolean>;
@@ -28,6 +28,13 @@ interface TopBarAPI {
 
   // Sidebar
   toggleSidebar: () => Promise<void>;
+
+  // Workflow Builder
+  openWorkflowBuilder: () => Promise<{
+    id: string;
+    title: string;
+    url: string;
+  }>;
 }
 
 declare global {
@@ -36,4 +43,3 @@ declare global {
     topBarAPI: TopBarAPI;
   }
 }
-

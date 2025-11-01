@@ -1,11 +1,14 @@
 import { BaseWindow, shell } from "electron";
 import { Tab } from "./Tab";
+import { WorkflowTab } from "./WorkflowTab";
 import { TopBar } from "./TopBar";
 import { SideBar } from "./SideBar";
 
+type AnyTab = Tab | WorkflowTab;
+
 export class Window {
   private _baseWindow: BaseWindow;
-  private tabsMap: Map<string, Tab> = new Map();
+  private tabsMap: Map<string, AnyTab> = new Map();
   private activeTabId: string | null = null;
   private tabCounter: number = 0;
   private _topBar: TopBar;
@@ -73,14 +76,14 @@ export class Window {
     return this._baseWindow;
   }
 
-  get activeTab(): Tab | null {
+  get activeTab(): AnyTab | null {
     if (this.activeTabId) {
       return this.tabsMap.get(this.activeTabId) || null;
     }
     return null;
   }
 
-  get allTabs(): Tab[] {
+  get allTabs(): AnyTab[] {
     return Array.from(this.tabsMap.values());
   }
 
@@ -115,6 +118,31 @@ export class Window {
       // Hide the tab initially if it's not the first one
       tab.hide();
     }
+
+    return tab;
+  }
+
+  createWorkflowTab(): WorkflowTab {
+    const tabId = `tab-${++this.tabCounter}`;
+    const tab = new WorkflowTab(tabId);
+
+    // Add the tab's WebContentsView to the window
+    this._baseWindow.contentView.addChildView(tab.view);
+
+    // Set the bounds to fill the window below the topbar and to the left of sidebar
+    const bounds = this._baseWindow.getBounds();
+    tab.view.setBounds({
+      x: 0,
+      y: 88, // Start below the topbar
+      width: bounds.width - 400, // Subtract sidebar width
+      height: bounds.height - 88, // Subtract topbar height
+    });
+
+    // Store the tab
+    this.tabsMap.set(tabId, tab);
+
+    // Make it active and switch to it
+    this.switchActiveTab(tabId);
 
     return tab;
   }
@@ -175,7 +203,7 @@ export class Window {
     return true;
   }
 
-  getTab(tabId: string): Tab | null {
+  getTab(tabId: string): AnyTab | null {
     return this.tabsMap.get(tabId) || null;
   }
 
@@ -262,7 +290,7 @@ export class Window {
   }
 
   // Getter for all tabs as array
-  get tabs(): Tab[] {
+  get tabs(): AnyTab[] {
     return Array.from(this.tabsMap.values());
   }
 

@@ -24,6 +24,9 @@ export class EventManager {
 
     // Debug events
     this.handleDebugEvents();
+
+    // Workflow builder events
+    this.handleWorkflowEvents();
   }
 
   private handleTabEvents(): void {
@@ -223,12 +226,24 @@ export class EventManager {
     ipcMain.on("ping", () => console.log("pong"));
   }
 
+  private handleWorkflowEvents(): void {
+    // Open workflow builder in a new tab
+    ipcMain.handle("open-workflow-builder", () => {
+      const workflowTab = this.mainWindow.createWorkflowTab();
+      return {
+        id: workflowTab.id,
+        title: workflowTab.title,
+        url: workflowTab.url,
+      };
+    });
+  }
+
   private broadcastDarkMode(sender: WebContents, isDarkMode: boolean): void {
     // Send to topbar
     if (this.mainWindow.topBar.view.webContents !== sender) {
       this.mainWindow.topBar.view.webContents.send(
         "dark-mode-updated",
-        isDarkMode
+        isDarkMode,
       );
     }
 
@@ -236,7 +251,7 @@ export class EventManager {
     if (this.mainWindow.sidebar.view.webContents !== sender) {
       this.mainWindow.sidebar.view.webContents.send(
         "dark-mode-updated",
-        isDarkMode
+        isDarkMode,
       );
     }
 
